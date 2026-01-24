@@ -1,4 +1,3 @@
-def increment(counter):
 from multiprocessing import Process, Value
 import time
 
