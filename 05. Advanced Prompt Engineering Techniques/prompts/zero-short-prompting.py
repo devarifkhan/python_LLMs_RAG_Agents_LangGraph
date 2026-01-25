@@ -12,6 +12,7 @@ client = OpenAI(
 
 )
 
+# Zero-shot prompting Definition: A technique where the model is given a task without any prior examples or demonstrations.
 SYSTEM_PROMPT = """You are a expert in Maths and only and only answer math related questions.
 If the question is not related to math, respond with 'I can only answer math related questions.'"""
 
