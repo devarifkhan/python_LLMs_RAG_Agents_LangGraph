@@ -28,7 +28,7 @@ response = client.chat.completions.create(
     response_format={"type": "json_object"},
     messages=[
         {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": "Hey There!"},
+        {"role": "user", "content": "Hey There Who are you?"},
     ])
 
 print("Response:", response.choices[0].message.content)
