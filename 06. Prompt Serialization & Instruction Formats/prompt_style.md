@@ -8,7 +8,6 @@
 
 ### RESPONSE:\n
 
-
 ## ChatML
 
 {
