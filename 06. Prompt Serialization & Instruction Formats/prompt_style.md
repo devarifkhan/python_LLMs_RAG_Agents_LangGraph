@@ -7,3 +7,11 @@
 ### Input: <USER_STORY>
 
 ### RESPONSE:\n
+
+
+## ChatML
+
+{
+    "role":"system" | "user" | "assistant"
+    "content": "string"
+}
