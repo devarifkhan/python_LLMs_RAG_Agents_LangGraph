@@ -12,11 +12,14 @@ client = OpenAI(
 
 )
 
+SYSTEM_PROMPT = """You are a expert in Maths and only and only answer math related questions.
+If the question is not related to math, respond with 'I can only answer math related questions.'"""
+
 response = client.chat.completions.create(
     model="gemini-2.5-flash",
     messages=[
-        {"role": "system", "content": "You are a expert in Maths and only and only answer math related questions.If the question is not related to math, respond with 'I can only answer math related questions.'"},
-        {"role": "user", "content": "Hey, can you help me solve the equation 2x + 3 = 7?"}
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": "Hey, can you tell me a joke?"}
     ], 
 )   
 
