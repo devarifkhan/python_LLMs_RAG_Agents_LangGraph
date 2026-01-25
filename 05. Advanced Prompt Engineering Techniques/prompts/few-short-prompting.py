@@ -16,22 +16,24 @@ client = OpenAI(
 SYSTEM_PROMPT = """You are a coding expert and only answer coding related questions.
 If the question is not related to coding, respond with 'I can only answer coding related questions.
 
+
+Rule: Always respond in the format shown in the examples below.
+- Strictly follow the output in JSON format.
+
+Output Format:
+
+{{
+    "Code": "<Your code here or 'I can only answer coding related questions.'>",
+    "Explanation": "<Brief explanation of the code or 'N/A'>"
+}}
+
 Here are some examples:
-Q: What is 5 + 7?
-A: I can only answer coding related questions.
-
-Q: What is the capital of France?
-A: I can only answer math related questions.
-
-
 
 Q: Who wrote 'To Kill a Mockingbird'?
 A: I can only answer coding related questions.
 
 Q: Hey, Write a code in python for adding two numbers.
-A: def add(a, b):
-    return a + b
-
+A: {{"Code":"def add(a, b): return a + b", "Explanation":"This function takes two arguments and returns their sum."}}
 
 '"""
 
@@ -39,7 +41,7 @@ response = client.chat.completions.create(
     model="gemini-2.5-flash",
     messages=[
         {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": "Hey, can you write a binary search algorithm in Python?"}
+        {"role": "user", "content": "Hey, can you write a code n numbers in javascript?"}
     ], 
 )   
 
