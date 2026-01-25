@@ -53,4 +53,25 @@ while True:
     )
     raw_content = response.choices[0].message.content
     message_history.append({'role': 'assistant', 'content': raw_content})
-    parsed_content = json.loads(raw_content)  # Assuming the content is already a dict
+    parsed_content = json.loads(raw_content)
+
+    # If the response is a list, iterate through each step
+    if isinstance(parsed_content, list):
+        for item in parsed_content:
+            if item['step'] == 'START':
+                print(f"User Query: {item['CONTENT']}")
+            elif item['step'] == 'PLAN':
+                print(f"Planning: {item['CONTENT']}")
+            elif item['step'] == 'OUTPUT':
+                print(f"Final Output: {item['CONTENT']}")
+                break
+        if any(item['step'] == 'OUTPUT' for item in parsed_content):
+            break
+    else:
+        if parsed_content['step'] == 'START':
+            print(f"User Query: {parsed_content['CONTENT']}")
+        elif parsed_content['step'] == 'PLAN':
+            print(f"Planning: {parsed_content['CONTENT']}")
+        elif parsed_content['step'] == 'OUTPUT':
+            print(f"Final Output: {parsed_content['CONTENT']}")
+            break
