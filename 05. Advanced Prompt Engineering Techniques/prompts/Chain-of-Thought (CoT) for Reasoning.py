@@ -2,6 +2,7 @@
 import os
 from dotenv import load_dotenv
 from openai import OpenAI
+import json
 
 load_dotenv()  # Load environment variables from a .env file
 
@@ -34,13 +35,22 @@ START: "Can you solve 2+3 * 5 /10 ?"
 "OUTPUT": { step:"OUTPUT","Content":"The final answer is 3.5"}
 """
 
-response = client.chat.completions.create(
-    model="gemini-2.5-flash",
-    response_format={"type": "json_object"},
-    messages=[
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": " Hey, write a code to add n numbers in js"}
-    ], 
-)   
+message_history = [
+    {
+        'role': 'system', 'content': SYSTEM_PROMPT,
+    }
+]
 
-print(response.choices[0].message.content)
+user_query = input("👉")
+message_history.append({'role': 'user', 'content': user_query})
+
+
+while True:
+    response = client.chat.completions.create(
+        model="gemini-2.5-flash",
+        response_format={"type": "json_object"},
+        messages=message_history,
+    )
+    raw_content = response.choices[0].message.content
+    message_history.append({'role': 'assistant', 'content': raw_content})
+    parsed_content = json.loads(raw_content)  # Assuming the content is already a dict
