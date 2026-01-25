@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 
+load_dotenv()  # Load environment variables from a .env file
 
 api_key = os.getenv("GOOGLE_API_KEY")
 client = OpenAI(
