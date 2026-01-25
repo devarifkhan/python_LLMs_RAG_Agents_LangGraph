@@ -41,9 +41,9 @@ message_history = [
     }
 ]
 
+
 user_query = input("👉")
 message_history.append({'role': 'user', 'content': user_query})
-
 
 while True:
     response = client.chat.completions.create(
@@ -55,23 +55,15 @@ while True:
     message_history.append({'role': 'assistant', 'content': raw_content})
     parsed_content = json.loads(raw_content)
 
-    # If the response is a list, iterate through each step
-    if isinstance(parsed_content, list):
-        for item in parsed_content:
-            if item['step'] == 'START':
-                print(f"User Query: {item['CONTENT']}")
-            elif item['step'] == 'PLAN':
-                print(f"Planning: {item['CONTENT']}")
-            elif item['step'] == 'OUTPUT':
-                print(f"Final Output: {item['CONTENT']}")
-                break
-        if any(item['step'] == 'OUTPUT' for item in parsed_content):
-            break
-    else:
-        if parsed_content['step'] == 'START':
-            print(f"User Query: {parsed_content['CONTENT']}")
-        elif parsed_content['step'] == 'PLAN':
-            print(f"Planning: {parsed_content['CONTENT']}")
-        elif parsed_content['step'] == 'OUTPUT':
-            print(f"Final Output: {parsed_content['CONTENT']}")
-            break
+    # Always handle as a list for consistency
+    steps = parsed_content if isinstance(parsed_content, list) else [parsed_content]
+    for item in steps:
+        if item['step'] == 'START':
+            print(f"User Query: {item['CONTENT']}")
+        elif item['step'] == 'PLAN':
+            print(f"Thinking: {item['CONTENT']}")
+        elif item['step'] == 'OUTPUT':
+            print(f"Final Output: {item['CONTENT']}")
+            exit(0)
+    # After the first response, send a 'continue' message to get the next step
+    message_history.append({'role': 'user', 'content': 'continue'})
