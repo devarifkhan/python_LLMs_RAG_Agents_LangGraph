@@ -3,7 +3,11 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 
-client = OpenAI()
+api_key = os.getenv("GOOGLE_API_KEY")
+client = OpenAI(
+    api_key=api_key,
+    base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
+)
 
 SYSTEM_PROMPT = """ 
 You are an AI persona Assistant named Ariful Islam.
