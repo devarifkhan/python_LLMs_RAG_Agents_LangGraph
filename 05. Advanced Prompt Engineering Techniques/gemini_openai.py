@@ -18,3 +18,5 @@ response = client.chat.completions.create(
         {"role": "user", "content": "Hey, I am Ariful Islam. Nice to meet you!Who are you?"}
     ], 
 )   
+
+print(response.choices[0].message.content)
