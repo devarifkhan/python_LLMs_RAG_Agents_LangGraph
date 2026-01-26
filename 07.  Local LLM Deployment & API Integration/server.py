@@ -1,6 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Body
 
 app = FastAPI()
+client= Client(
+    host="http://localhost:11434",
+)
 
 @app.get("/")
 def read_root():
@@ -13,3 +16,15 @@ def contact_us():
         "phone": "+8801764297928",
         "address": "Comilla, Bangladesh"
     }
+
+@app.post("/chat")
+def chat(
+    message: str = Body(..., description="The message to send to the LLM"),
+):
+    response = client.chat.completions.create(
+        model="local-llm-model",
+        messages=[
+            {"role": "user", "content": message}
+        ]
+    )
+    return {"response": response.choices[0].message["content"]}
