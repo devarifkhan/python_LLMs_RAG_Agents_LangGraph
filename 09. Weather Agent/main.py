@@ -79,22 +79,32 @@ def ask_llm_stream(messages):
     Returns the full accumulated JSON at the end.
     """
     full_content = ""
-    stream_resp = client.chat.completions.stream(
+    stream_resp = client.chat.completions.create(
         model=MODEL,
-        messages=messages
+        messages=messages,
+        stream=True
     )
-    
+
     print()  # newline for clarity
-    for event in stream_resp:
-        if event.type == "response.output_text.delta":
-            text = event.delta
+    for chunk in stream_resp:
+        if chunk.choices and chunk.choices[0].delta.content:
+            text = chunk.choices[0].delta.content
             print(text, end="", flush=True)
             full_content += text
-    
+
     print()  # final newline
 
+    # Strip markdown code fences (```json ... ```) that Gemini adds
+    cleaned = full_content.strip()
+    if cleaned.startswith("```"):
+        # Remove opening fence (```json or ```)
+        cleaned = cleaned.split("\n", 1)[1] if "\n" in cleaned else cleaned[3:]
+    if cleaned.endswith("```"):
+        cleaned = cleaned[:-3]
+    cleaned = cleaned.strip()
+
     try:
-        return json.loads(full_content)
+        return json.loads(cleaned)
     except json.JSONDecodeError:
         return {"error": "Failed to parse JSON from streamed output", "content": full_content}
 
