@@ -3,6 +3,8 @@ import json
 import requests
 from dotenv import load_dotenv
 from openai import OpenAI
+from pydantic import BaseModel, ValidationError
+from typing import List, Optional
 
 # -------------------------
 # Load environment variables
@@ -25,22 +27,25 @@ client = OpenAI(
 )
 MODEL = "gemini-2.5-flash"
 
+# -------------------------
+# Pydantic Models
+# -------------------------
+class CityInfo(BaseModel):
+    weather: bool
+    city: Optional[str]
 
-def ask_llm(messages):
-    """Call the LLM and return JSON object."""
-    response = client.chat.completions.create(
-        model=MODEL,
-        response_format={"type": "json_object"},
-        messages=messages,
-    )
-    return json.loads(response.choices[0].message.content)
+class PlanStep(BaseModel):
+    step: str
+    CONTENT: str
 
+class StepOutput(BaseModel):
+    step: str
+    CONTENT: str
 
 # -------------------------
 # Weather Tool
 # -------------------------
 BASE_URL = "https://www.meteosource.com/api/v1/free"
-
 
 def getWeather(city: str):
     """
@@ -60,11 +65,38 @@ def getWeather(city: str):
     # Filter for Bangladesh first
     bangladesh_places = [p for p in places if p["country"] == "Bangladesh"]
     if bangladesh_places:
-        return bangladesh_places[0]  # first match in Bangladesh
+        return bangladesh_places[0]
 
     # If no Bangladesh match, return first place
     return places[0] if places else None
 
+# -------------------------
+# LLM Streaming Function
+# -------------------------
+def ask_llm_stream(messages):
+    """
+    Calls the LLM with streaming and prints output line by line.
+    Returns the full accumulated JSON at the end.
+    """
+    full_content = ""
+    stream_resp = client.chat.completions.stream(
+        model=MODEL,
+        messages=messages
+    )
+    
+    print()  # newline for clarity
+    for event in stream_resp:
+        if event.type == "response.output_text.delta":
+            text = event.delta
+            print(text, end="", flush=True)
+            full_content += text
+    
+    print()  # final newline
+
+    try:
+        return json.loads(full_content)
+    except json.JSONDecodeError:
+        return {"error": "Failed to parse JSON from streamed output", "content": full_content}
 
 # -------------------------
 # Main Agent Loop
@@ -76,31 +108,33 @@ def main():
     # Step 0: Ask LLM to extract city if weather-related
     # -------------------------
     city_extraction_prompt = f"""
-        Detect if the user wants weather information.
-        If yes, extract the city name.
-        Return JSON ONLY:
+Detect if the user wants weather information.
+If yes, extract the city name.
+Return JSON ONLY:
 
-        Format:
-        {{"weather": true/false, "city": "CityName or null"}}
+Format:
+{{"weather": true/false, "city": "CityName or null"}}
 
-        User query:
-        {user_query}
-        """
-    city_info = ask_llm(
-        [
-            {
-                "role": "system",
-                "content": "You detect weather queries and extract the city.",
-            },
-            {"role": "user", "content": city_extraction_prompt},
-        ]
-    )
+User query:
+{user_query}
+"""
+    city_info_json = ask_llm_stream([
+        {"role": "system", "content": "You detect weather queries and extract the city."},
+        {"role": "user", "content": city_extraction_prompt},
+    ])
+
+    # Validate with Pydantic
+    try:
+        city_info = CityInfo(**city_info_json)
+    except ValidationError as e:
+        print(f"Failed to parse city info: {e}")
+        city_info = CityInfo(weather=False, city=None)
 
     # -------------------------
     # If weather intent detected, call tool
     # -------------------------
-    if city_info.get("weather") and city_info.get("city"):
-        city = city_info["city"]
+    if city_info.weather and city_info.city:
+        city = city_info.city
         try:
             weather_info = getWeather(city)
             print(f"\n🌤 Weather info for {city}:\n{json.dumps(weather_info, indent=2)}")
@@ -113,66 +147,72 @@ def main():
     # -------------------------
     # START
     start_prompt = f"""
-        Return ONLY JSON.
+Return ONLY JSON.
 
-        Format:
-        {{"step":"START","CONTENT":"string"}}
+Format:
+{{"step":"START","CONTENT":"string"}}
 
-        User query:
-        {user_query}
-        """
-    start_res = ask_llm(
-        [
-            {"role": "system", "content": "You structure user input."},
-            {"role": "user", "content": start_prompt},
-        ]
-    )
-    print(f"\nSTART: {start_res['CONTENT']}")
+User query:
+{user_query}
+"""
+    start_res_json = ask_llm_stream([
+        {"role": "system", "content": "You structure user input."},
+        {"role": "user", "content": start_prompt},
+    ])
+    try:
+        start_res = StepOutput(**start_res_json)
+        print(f"\nSTART: {start_res.CONTENT}")
+    except ValidationError:
+        print(f"\nSTART (raw): {start_res_json}")
 
     # PLAN
     plan_prompt = f"""
-        You are solving the following problem:
+You are solving the following problem:
 
-        {user_query}
+{user_query}
 
-        Break the solution into clear logical steps.
-        Do NOT solve it yet.
+Break the solution into clear logical steps.
+Do NOT solve it yet.
 
-        Return ONLY JSON ARRAY.
+Return ONLY JSON ARRAY.
 
-        Format:
-        [
-        {{"step":"PLAN","CONTENT":"string"}}
-        ]"""
-    plan_res = ask_llm(
-        [
-            {"role": "system", "content": "You plan solutions step by step."},
-            {"role": "user", "content": plan_prompt},
-        ]
-    )
+Format:
+[
+  {{"step":"PLAN","CONTENT":"string"}}
+]
+"""
+    plan_res_json = ask_llm_stream([
+        {"role": "system", "content": "You plan solutions step by step."},
+        {"role": "user", "content": plan_prompt},
+    ])
     print("\nPLAN:")
-    for p in plan_res:
-        print(f"- {p['CONTENT']}")
+    try:
+        plan_res = [PlanStep(**p) for p in plan_res_json]
+        for p in plan_res:
+            print(f"- {p.CONTENT}")
+    except ValidationError:
+        print(plan_res_json)
 
     # OUTPUT
     output_prompt = f"""
-        Solve the problem completely now:
+Solve the problem completely now:
 
-        {user_query}
+{user_query}
 
-        Return ONLY JSON.
+Return ONLY JSON.
 
-        Format:
-        {{"step":"OUTPUT","CONTENT":"string"}}
-        """
-    output_res = ask_llm(
-        [
-            {"role": "system", "content": "You solve problems accurately."},
-            {"role": "user", "content": output_prompt},
-        ]
-    )
-    print(f"\nOUTPUT: {output_res['CONTENT']}")
-
+Format:
+{{"step":"OUTPUT","CONTENT":"string"}}
+"""
+    output_res_json = ask_llm_stream([
+        {"role": "system", "content": "You solve problems accurately."},
+        {"role": "user", "content": output_prompt},
+    ])
+    try:
+        output_res = StepOutput(**output_res_json)
+        print(f"\nOUTPUT: {output_res.CONTENT}")
+    except ValidationError:
+        print(f"\nOUTPUT (raw): {output_res_json}")
 
 if __name__ == "__main__":
     main()
