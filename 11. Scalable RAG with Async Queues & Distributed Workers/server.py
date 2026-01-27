@@ -1,18 +1,20 @@
-from fastapi import FastAPI,Query
+from fastapi import FastAPI, Query
+from pydantic import BaseModel
 from client.rq_client import queue
 from queues.worker import worker_queue
 
 app = FastAPI()
+
+class ChatRequest(BaseModel):
+    query: str
 
 @app.get("/")
 def root():
     return {"message": "Server is running"}
 
 @app.post("/chat")
-def chat(
-    query: str = Query(..., description="The input query for the chat model")
-):
-    job = queue.enqueue(worker_queue, query)
+def chat(request: ChatRequest):
+    job = queue.enqueue(worker_queue, request.query)
     return {"status":"queued","job_id":job.id}
 
 @app.get('/job-status')
