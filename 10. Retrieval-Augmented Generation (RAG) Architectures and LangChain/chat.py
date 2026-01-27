@@ -9,7 +9,7 @@ embedding_model= GoogleGenerativeAIEmbeddings(
     model="models/embedding-001"
 )
 
-vector_db= QdrantVectorStore.load_from_vectorstore(
+vector_db= QdrantVectorStore.from_existing_collection(
     embedding=embedding_model,
     url="http://localhost:6333",
     collection_name="learning_rag"
