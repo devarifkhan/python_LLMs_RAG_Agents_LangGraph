@@ -1,12 +1,12 @@
 from dotenv import load_dotenv
-from langchain_openai import OpenAIEmbeddings
-from openai import OpenAI
+from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
+from langchain_qdrant import QdrantVectorStore
 
 load_dotenv()
 
 #Vector Embeddings
-embedding_model= OpenAIEmbeddings(
-    model="text-embedding-3-large"
+embedding_model= GoogleGenerativeAIEmbeddings(
+    model="models/embedding-001"
 )
 
 vector_db= QdrantVectorStore.load_from_vectorstore(
@@ -28,20 +28,17 @@ SYSTEM_PROMPT = """You are a helpful AI assistant that helps people find informa
 context: {context}
 """
 
-client = OpenAI()
+chat_model = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
 
-response= client.chat.completions.create(
-    model="gpt-4o",
-    messages=[
-        {
-            "role": "system",
-            "content": SYSTEM_PROMPT.format(context=context)
-        },
-        {
-            "role": "user",
-            "content": user_query
-        }
-    ]
-)
+response = chat_model.invoke([
+    {
+        "role": "system",
+        "content": SYSTEM_PROMPT.format(context=context)
+    },
+    {
+        "role": "user",
+        "content": user_query
+    }
+])
 
-print("AI:", response.choices[0].message.content)
+print("AI:", response.content)
