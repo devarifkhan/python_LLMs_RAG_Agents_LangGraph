@@ -9,9 +9,11 @@ class State(TypedDict):
     
 
 def chatbot(state: State):
+    print("Inside Chatbot Node",state)
     return {"messages": "Hi, This is a message from LangGraph Chatbot Node!"}
 
 def samplenode(state: State):
+    print("Inside Sample Node",state)
     return {"messages": "Hi, This is a message from LangGraph Sample Node!"}
 
 graph_builder = StateGraph(State)
