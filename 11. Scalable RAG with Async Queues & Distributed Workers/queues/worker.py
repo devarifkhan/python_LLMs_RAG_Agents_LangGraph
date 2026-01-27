@@ -41,3 +41,4 @@ def worker_queue(query: str):
     )
 
     print("AI Response:", response.text)
+    return response.text
