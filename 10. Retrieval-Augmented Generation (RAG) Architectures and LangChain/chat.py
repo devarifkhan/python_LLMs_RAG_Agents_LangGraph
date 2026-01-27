@@ -28,7 +28,7 @@ SYSTEM_PROMPT = """You are a helpful AI assistant that helps people find informa
 context: {context}
 """
 
-chat_model = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
+chat_model = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
 
 response = chat_model.invoke([
     {
