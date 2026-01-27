@@ -14,3 +14,10 @@ def chat(
 ):
     job = queue.enqueue(worker_queue, query)
     return {"status":"queued","job_id":job.id}
+
+@app.get('/job-status')
+def get_result(job_id: str= Query(..., description="The job ID to fetch the result for")):
+    job = queue.fetch_job(job_id=job_id)
+    
+    result = job.return_value()
+    return {"result": result}
