@@ -4,6 +4,14 @@ from typing import Annotated
 from asyncio import graph
 from langgraph.graph_message import add_messages
 from langgraph.graph import StateGraph,START,END
+from langchain.chat_models import init_chat_model
+
+load_dotenv()
+
+llm = init_chat_model(
+    model="gpt-3.5-turbo",
+    model_provider="openai"
+)
 
 class State(TypedDict):
     messages: Annotated[list,add_messages]
