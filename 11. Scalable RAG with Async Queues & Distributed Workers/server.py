@@ -1,6 +1,6 @@
 from fastapi import FastAPI,Query
 from client.rq_client import queue
-from .queues.worker import worker_queue
+from queues.worker import worker_queue
 
 app = FastAPI()
 
