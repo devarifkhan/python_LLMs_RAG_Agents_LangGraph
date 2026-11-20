@@ -8,3 +8,6 @@ services:
       - qdrant_data:/qdrant/storage
     environment:
       - QDRANT__STORAGE__PATH=/qdrant/storage
+
+volumes:
+  qdrant_data:

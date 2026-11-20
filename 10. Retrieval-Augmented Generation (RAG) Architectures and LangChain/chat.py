@@ -5,8 +5,9 @@ from langchain_qdrant import QdrantVectorStore
 load_dotenv()
 
 #Vector Embeddings
+# Must match the model used in index.py
 embedding_model= GoogleGenerativeAIEmbeddings(
-    model="models/embedding-001"
+    model="models/gemini-embedding-001"
 )
 
 vector_db= QdrantVectorStore.from_existing_collection(
@@ -16,14 +17,14 @@ vector_db= QdrantVectorStore.from_existing_collection(
 )
 
 #Take user input and generate response
-user_query = input("Ask about go: ")
+user_query = input("Ask a question about your PDF: ")
 
 #Relavant chunks
 search_results = vector_db.similarity_search(user_query, k=3)
 
 context = "\n\n".join([doc.page_content for doc in search_results])
 
-SYSTEM_PROMPT = """You are a helpful AI assistant that helps people find information about the Go programming language. Use the context provided to answer the question as accurately as possible. If you don't know the answer, just say that you don't know, don't try to make up an answer.
+SYSTEM_PROMPT = """You are a helpful AI assistant that answers questions about the user's document. Use the context provided to answer the question as accurately as possible. If you don't know the answer, just say that you don't know, don't try to make up an answer.
 
 context: {context}
 """

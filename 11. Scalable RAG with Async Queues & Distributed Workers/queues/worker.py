@@ -10,7 +10,7 @@ api_key = os.getenv("GOOGLE_API_KEY")
 
 # vector embeddings
 embedding_model = GoogleGenerativeAIEmbeddings(
-    model="models/text-embedding-004",
+    model="models/gemini-embedding-001",  # must match folder 10 index.py
     google_api_key=api_key,
 )
 
@@ -29,7 +29,7 @@ def worker_queue(query: str):
     context = "\n".join([doc.page_content for doc in search_results])
     print("Context retrieved from vector DB:", context)
 
-    SYSTEM_PROMPT = """You are a helpful AI assistant that helps people find information about the Go programming language. Use the context provided to answer the question as accurately as possible. If you don't know the answer, just say that you don't know, don't try to make up an answer.
+    SYSTEM_PROMPT = """You are a helpful AI assistant that answers questions about the user's document. Use the context provided to answer the question as accurately as possible. If you don't know the answer, just say that you don't know, don't try to make up an answer.
     context: {context}"""
 
     response = gemini_client.models.generate_content(

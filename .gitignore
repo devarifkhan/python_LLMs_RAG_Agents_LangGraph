@@ -1,6 +1,13 @@
-.venv
-05. Advanced Prompt Engineering Techniques/.env
-09. Weather Agent/.env
-10. Retrieval-Augmented Generation (RAG) Architectures and LangChain/.env
-11. Scalable RAG with Async Queues & Distributed Workers/.env
-14. The Memory Layer – Building Short, Long, and Semantic Memory in AI Agents/.env
+# Virtual environment
+.venv/
+
+# Secrets: every folder keeps its own .env (copy it from .env.example)
+.env
+!.env.example
+
+# Documents used for RAG: place your own PDF in the folder instead
+*.pdf
+
+# Python cache
+__pycache__/
+*.pyc

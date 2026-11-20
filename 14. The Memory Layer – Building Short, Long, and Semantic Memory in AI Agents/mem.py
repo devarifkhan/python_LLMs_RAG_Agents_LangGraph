@@ -1,3 +1,8 @@
+# WORK IN PROGRESS
+# This mem0 memory-layer example is not finished and does not run as-is:
+# the embedding/LLM model names and the OpenAI vs Gemini client setup still need fixing.
+# See the root README for the status of every folder.
+
 from mem0 import Memory
 from dotenv import load_dotenv
 import os

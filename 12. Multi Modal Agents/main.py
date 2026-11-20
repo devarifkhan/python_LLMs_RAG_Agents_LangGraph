@@ -1,3 +1,8 @@
+# WORK IN PROGRESS
+# This multimodal (text + image) example is not finished and does not run as-is:
+# the model name and the image URL below are placeholders.
+# See the root README for the status of every folder.
+
 from dotenv import load_dotenv
 from openai import OpenAI
 

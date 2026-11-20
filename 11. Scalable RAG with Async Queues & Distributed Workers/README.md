@@ -1,6 +1,6 @@
 # Scalable RAG with Async Queues & Distributed Workers
 
-A question-answering API over a PDF (the Go programming language book). Questions are not answered inside the HTTP request. Instead, the API puts each one on a **Redis queue** and returns a `job_id` straight away. A separate **RQ worker** runs the RAG pipeline: it searches **Qdrant** for the most relevant chunks and asks **Gemini 2.5 Flash** to answer from them. You can add more workers to handle more load.
+A question-answering API over your own PDF. Questions are not answered inside the HTTP request. Instead, the API puts each one on a **Redis queue** and returns a `job_id` straight away. A separate **RQ worker** runs the RAG pipeline: it searches **Qdrant** for the most relevant chunks and asks **Gemini 2.5 Flash** to answer from them. You can add more workers to handle more load.
 
 ```
 client ──POST /chat──▶ FastAPI ──enqueue──▶ Redis ──▶ RQ worker(s)
@@ -46,7 +46,7 @@ docker compose up -d
 
 **2. Index the PDF (one time only)**
 
-The `learning_rag` collection is built by the indexing script in folder 10. Make it use the same embedding model as the worker (`models/text-embedding-004`), then run:
+The `learning_rag` collection is built by the indexing script in folder 10, which uses the same embedding model as the worker (`gemini-embedding-001`). Place any PDF in folder 10, then run:
 
 ```bash
 cd "../10. Retrieval-Augmented Generation (RAG) Architectures and LangChain"
@@ -73,12 +73,12 @@ python main.py
 # Queue a question
 curl -X POST http://localhost:8000/chat \
   -H "Content-Type: application/json" \
-  -d '{"query": "What is a goroutine?"}'
+  -d '{"query": "What is this document about?"}'
 # → {"status": "queued", "job_id": "abc123..."}
 
 # Check the result
 curl "http://localhost:8000/job-status?job_id=abc123..."
-# → {"status": "finished", "result": "A goroutine is ..."}
+# → {"status": "finished", "result": "The document is about ..."}
 ```
 
 The `status` field can be `queued`, `started`, `finished` or `failed`. `result` is `null` until the job finishes. If the `job_id` is unknown, the API returns **404**.

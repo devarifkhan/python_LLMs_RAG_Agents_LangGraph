@@ -1,3 +1,4 @@
+import os
 from typing import Annotated
 from typing_extensions import TypedDict
 from dotenv import load_dotenv
@@ -7,7 +8,7 @@ from langchain_openai import ChatOpenAI
 
 load_dotenv()
 
-llm = ChatOpenAI(model="gpt-3.5-turbo")
+llm = ChatOpenAI(model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"))
 
 
 class State(TypedDict):
