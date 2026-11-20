@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 from client.rq_client import queue
 from queues.worker import worker_queue
@@ -20,6 +20,7 @@ def chat(request: ChatRequest):
 @app.get('/job-status')
 def get_result(job_id: str= Query(..., description="The job ID to fetch the result for")):
     job = queue.fetch_job(job_id=job_id)
-    
-    result = job.return_value()
-    return {"result": result}
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    return {"status": job.get_status(), "result": job.return_value()}
